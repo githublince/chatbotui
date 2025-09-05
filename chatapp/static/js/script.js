@@ -2,77 +2,120 @@
 document.addEventListener('DOMContentLoaded', () => {
   const input = document.getElementById('user-input');
   const chatBox = document.getElementById('chat-box');
-  const sendBtn = document.getElementById('send-btn'); // see HTML note below
+  // support both an explicit id (#send-btn) or fallback to the button inside input-container
+  const sendBtn = document.getElementById('send-btn') || document.querySelector('.input-container button');
 
-  // Append a message to chat box
+  if (!input || !chatBox || !sendBtn) {
+    console.error('Required elements missing: #user-input, #chat-box or send button');
+    return;
+  }
+
+  // append a normal text message
   function appendMessage(text, className) {
     const div = document.createElement('div');
     div.className = `message ${className}`;
-    // preserve newlines in display; ensure .message has `white-space: pre-wrap` in CSS
     div.textContent = text;
     chatBox.appendChild(div);
     chatBox.scrollTop = chatBox.scrollHeight;
   }
 
-  // Auto-resize textarea up to `max` px
+  // auto-resize textarea (max height in px)
   function autoResize(el) {
-    const max = 120; // px (keep in sync with CSS max-height)
+    const max = 120;
     el.style.height = 'auto';
     el.style.height = Math.min(el.scrollHeight, max) + 'px';
     el.style.overflowY = el.scrollHeight > max ? 'auto' : 'hidden';
   }
 
-  // Send message to server and display local message
+  // enable / disable user input
+  function setInputEnabled(enabled) {
+    if (enabled) {
+      input.removeAttribute('disabled');
+      sendBtn.removeAttribute('disabled');
+      input.classList.remove('disabled');
+      sendBtn.classList.remove('disabled');
+      input.placeholder = 'Type your message...';
+    } else {
+      input.setAttribute('disabled', 'true');
+      sendBtn.setAttribute('disabled', 'true');
+      input.classList.add('disabled');
+      sendBtn.classList.add('disabled');
+      input.placeholder = 'Waiting for response...';
+    }
+  }
+
+  // show a bot "typing" indicator and return the node so it can be removed later
+  function showTypingIndicator() {
+    const typing = document.createElement('div');
+    typing.className = 'message bot-typing';
+    typing.innerHTML = '<span class="dot"></span><span class="dot"></span><span class="dot"></span>';
+    chatBox.appendChild(typing);
+    chatBox.scrollTop = chatBox.scrollHeight;
+    return typing;
+  }
+
+  // main send function
   async function sendMessage() {
-    const message = input.value.trim();
+    // prevent double submission if already disabled
+    if (input.disabled) return;
+
+    const raw = input.value;
+    const message = raw.trim();
     if (message === '') return;
 
+    // show user message immediately
     appendMessage(message, 'user-message');
 
-    // send to server (adjust endpoint if needed)
+    // disable input and show typing indicator
+    setInputEnabled(false);
+    const typingNode = showTypingIndicator();
+
     try {
       const res = await fetch('/chat/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message })
       });
+
       const data = await res.json();
+
+      // remove typing indicator and display bot reply
+      if (typingNode && typingNode.parentNode) typingNode.parentNode.removeChild(typingNode);
       appendMessage(data.response ?? 'No response', 'bot-message');
     } catch (err) {
+      if (typingNode && typingNode.parentNode) typingNode.parentNode.removeChild(typingNode);
       appendMessage('Error: Could not reach the server', 'bot-message');
       console.error(err);
+    } finally {
+      // reset textarea, resize and re-enable input
+      input.value = '';
+      autoResize(input);
+      setInputEnabled(true);
+      input.focus();
     }
-
-    // reset textarea
-    input.value = '';
-    autoResize(input);
   }
 
-  // Make sendMessage available globally in case HTML uses onclick="sendMessage()"
+  // expose to window so onclick="sendMessage()" still works
   window.sendMessage = sendMessage;
 
-  // Attach listeners
+  // listeners
   input.addEventListener('input', () => autoResize(input));
 
   input.addEventListener('keydown', (e) => {
-    // Enter without Shift => send
+    if (input.disabled) return; // ignore while waiting
+    // Enter = send, Shift+Enter = newline
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       sendMessage();
     }
-    // Shift+Enter: let browser insert newline (do nothing)
   });
 
-  if (sendBtn) {
-    sendBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      sendMessage();
-    });
-  }
+  sendBtn.addEventListener('click', (e) => {
+    if (sendBtn.disabled) return;
+    e.preventDefault();
+    sendMessage();
+  });
 
-  // initial resize (if textarea has prefilled content)
+  // initial
   autoResize(input);
-
-  // small debug notice
-  // console.log('Chat handlers attached (Shift+Enter for newline, Enter to send).');
 });

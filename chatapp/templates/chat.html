@@ -8,10 +8,60 @@
   <title>Chatbot</title>
   <link rel="stylesheet" href="{% static 'css/style.css' %}">
   <style>
+    /* disabled styles */
+.input-container button[disabled],
+.input-container button.disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  transform: none;
+}
+
+textarea[disabled],
+textarea.disabled {
+  background: #f3f4f6;
+  opacity: 0.95;
+  cursor: not-allowed;
+}
+
+/* typing indicator */
+.message.bot-typing {
+  background-color: rgba(233, 236, 239, 0.95);
+  color: #333;
+  align-self: flex-start;
+  padding: 8px 12px;
+  border-radius: 12px;
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+}
+
+/* three animated dots */
+.message.bot-typing .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #6b7280; /* neutral gray */
+  opacity: 0.35;
+  animation: bot-dot 1s infinite;
+}
+.message.bot-typing .dot:nth-child(2) { animation-delay: 0.18s; }
+.message.bot-typing .dot:nth-child(3) { animation-delay: 0.36s; }
+
+@keyframes bot-dot {
+  0%   { transform: translateY(0); opacity: 0.35; }
+  50%  { transform: translateY(-4px); opacity: 1; }
+  100% { transform: translateY(0); opacity: 0.35; }
+}
 
   </style>
 </head>
 <body>
+  <!-- Header -->
+  <div class="header">
+    AI-Driven Tech Stack Reccommeder
+  </div>
+
+  <!-- Layout with side panels and chat -->
   <div class="layout">
     <div class="side-panel">
       <h2>Description</h2>
