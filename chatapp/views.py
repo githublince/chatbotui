@@ -12,7 +12,8 @@ from django.views.decorators.csrf import csrf_exempt
 logger = logging.getLogger(__name__)
 
 # Configure these via Django settings or environment variables
-OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY")
+# Load and sanitize API key
+OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY", "").strip().strip('"')
 logger.info(f"DEBUG: OPENROUTER_API_KEY (repr) = {repr(OPENROUTER_API_KEY)}")
 OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
 DEFAULT_MODEL = "meta-llama/llama-3.3-70b-instruct:free"
