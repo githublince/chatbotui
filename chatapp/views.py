@@ -42,6 +42,8 @@ def call_openrouter(prompt_text: str, model: str = DEFAULT_MODEL, timeout: int =
     }
 
     try:
+        logger.info(f"DEBUG key repr: {repr(OPENROUTER_API_KEY)}")
+        logger.info(f"DEBUG headers: {headers}")
         resp = requests.post(OPENROUTER_URL, headers=headers, json=payload, timeout=timeout)
         resp.raise_for_status()
         data = resp.json()
