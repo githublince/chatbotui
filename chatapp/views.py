@@ -1,9 +1,7 @@
-# views.py
 import os
 import json
 import logging
 import requests
-
 from django.conf import settings
 from django.shortcuts import render
 from django.http import JsonResponse
@@ -12,11 +10,11 @@ from django.views.decorators.csrf import csrf_exempt
 logger = logging.getLogger(__name__)
 
 # Configure these via Django settings or environment variables
-OPENROUTER_API_KEY = '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'
+OPENROUTER_API_KEY = getattr(settings, 'OPENROUTER_API_KEY', os.getenv('OPENROUTER_API_KEY'))
 OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
 DEFAULT_MODEL = "meta-llama/llama-3.3-70b-instruct:free"
+FALLBACK_MODEL = "openai/gpt-3.5-turbo"  # Fallback model in case the default fails
 REQUEST_TIMEOUT = 30  # seconds
-
 
 def call_openrouter(prompt_text: str, model: str = DEFAULT_MODEL, timeout: int = REQUEST_TIMEOUT) -> str:
     """
@@ -31,8 +29,6 @@ def call_openrouter(prompt_text: str, model: str = DEFAULT_MODEL, timeout: int =
         "messages": [
             {"role": "user", "content": prompt_text}
         ],
-        # optional: add other model params like temperature, top_p etc.
-        # "temperature": 0.2
     }
     headers = {
         "Authorization": f"Bearer {OPENROUTER_API_KEY}",
@@ -40,6 +36,7 @@ def call_openrouter(prompt_text: str, model: str = DEFAULT_MODEL, timeout: int =
     }
 
     try:
+        logger.debug(f"Sending request to OpenRouter: URL={OPENROUTER_URL}, Model={model}, Headers={headers}, Payload={payload}")
         resp = requests.post(OPENROUTER_URL, headers=headers, json=payload, timeout=timeout)
         resp.raise_for_status()
         data = resp.json()
@@ -52,29 +49,31 @@ def call_openrouter(prompt_text: str, model: str = DEFAULT_MODEL, timeout: int =
             except Exception:
                 content = None
 
-            # fallback to other possible fields
+            # Fallback to other possible fields
             if content is None:
                 try:
                     content = data["choices"][0].get("text")
                 except Exception:
                     content = None
 
-            # final fallback: return the whole JSON string
+            # Final fallback: return the whole JSON string
             if content is None:
                 content = json.dumps(data)
         else:
             content = str(data)
 
+        logger.debug(f"OpenRouter response: {content}")
         return content
 
     except requests.RequestException as e:
-        logger.exception("OpenRouter request failed")
-        raise RuntimeError(f"OpenRouter request failed: {str(e)}")
-
+        logger.error(f"OpenRouter request failed: {str(e)} - Response: {resp.text if 'resp' in locals() else 'No response'}")
+        if resp.status_code == 401 and model != FALLBACK_MODEL:
+            logger.info(f"Retrying with fallback model: {FALLBACK_MODEL}")
+            return call_openrouter(prompt_text, model=FALLBACK_MODEL, timeout=timeout)
+        raise RuntimeError(f"OpenRouter request failed: {str(e)} - Response: {resp.text if 'resp' in locals() else 'No response'}")
 
 def chat_page(request):
     return render(request, "chat.html")
-
 
 @csrf_exempt
 def chat_response(request):
@@ -94,14 +93,19 @@ def chat_response(request):
     if not isinstance(user_message, str) or user_message.strip() == "":
         return JsonResponse({"response": "Error: Empty message"}, status=400)
 
-    # Compose the prompt text we want to send (explicit string — easier to reason about)
+    # Compose the prompt text
     prompt_text = (
         "You are an expert project requirements analyst.\n\n"
         "The user has provided the following project requirements:\n\n"
         f"{user_message}\n\n"
         "Analyze the requirements and provide a structured response. "
-        " return only JSON object that includes at least these fields: "
-        "recommended_tech_stack: a tech stack set may contain frontend, backend, database , deployment,Project Overview,Functional Requirements,Non-Functional Requirements,Recommended Backend Technologies,Recommended Frontend Technologies,Database and Storage Solutions,Real-Time Features and Protocols,Security Considerations,Scalability and Performance Strategies,Deployment and Infrastructure Options etc. it should also contain breif summary why this stack is good and example of websites that are already with the stack .provide such 5 set and their cohesive compatibility strength inside one set  \n"
+        "Return only a JSON object that includes at least these fields: "
+        "recommended_tech_stack: a tech stack set may contain frontend, backend, database, deployment, "
+        "Project Overview, Functional Requirements, Non-Functional Requirements, Recommended Backend Technologies, "
+        "Recommended Frontend Technologies, Database and Storage Solutions, Real-Time Features and Protocols, "
+        "Security Considerations, Scalability and Performance Strategies, Deployment and Infrastructure Options. "
+        "It should also contain a brief summary of why this stack is good and examples of websites that use the stack. "
+        "Provide 5 such sets and their cohesive compatibility strength within each set.\n"
     )
 
     try:
@@ -110,7 +114,7 @@ def chat_response(request):
         logger.exception("Error invoking OpenRouter")
         return JsonResponse({"response": f"Error calling OpenRouter: {str(e)}"}, status=500)
 
-    # Try to parse model output as JSON (models sometimes return JSON text)
+    # Try to parse model output as JSON
     parsed = None
     try:
         parsed = json.loads(bot_text)
@@ -119,8 +123,6 @@ def chat_response(request):
 
     response = {"response": bot_text}
     if parsed is not None:
-        # include parsed structure for clients that want to read structured fields
         response["structured"] = parsed
 
     return JsonResponse(response)
-
