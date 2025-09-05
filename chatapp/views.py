@@ -11,7 +11,6 @@ logger = logging.getLogger(__name__)
 
 # Configure these via Django settings or environment variables
 OPENROUTER_API_KEY = getattr(settings, 'OPENROUTER_API_KEY', os.getenv('OPENROUTER_API_KEY'))
-OPENROUTER_API_KEY = getattr(settings, 'OPENROUTER_API_KEY', os.getenv('OPENROUTER_API_KEY'))
 OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
 DEFAULT_MODEL = "meta-llama/llama-3.3-70b-instruct:free"
 FALLBACK_MODEL = "openai/gpt-3.5-turbo"  # Fallback model in case the default fails
