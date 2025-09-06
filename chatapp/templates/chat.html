@@ -2,138 +2,303 @@
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Chatbot</title>
-  <link rel="stylesheet" href="{% static 'css/style.css' %}">
-  <style>
-    /* Disabled styles */
-    .input-container button[disabled],
-    .input-container button.disabled {
-      opacity: 0.65;
-      cursor: not-allowed;
-      transform: none;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatbot</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f3f4f6;
+            color: #4b5563;
+        }
 
-    textarea[disabled],
-    textarea.disabled {
-      background: #f3f4f6;
-      opacity: 0.95;
-      cursor: not-allowed;
-    }
+        .header {
+            background-color: #1f2937;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            font-size: 1.5em;
+            font-weight: bold;
+        }
 
-    /* Typing indicator */
-    .message.bot-typing {
-      background-color: rgba(233, 236, 239, 0.95);
-      color: #333;
-      align-self: flex-start;
-      padding: 8px 12px;
-      border-radius: 12px;
-      display: inline-flex;
-      gap: 6px;
-      align-items: center;
-    }
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #f9fafb;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+        }
 
-    .message.bot-typing .dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: #6b7280;
-      opacity: 0.35;
-      animation: bot-dot 1s infinite;
-    }
-    .message.bot-typing .dot:nth-child(2) { animation-delay: 0.18s; }
-    .message.bot-typing .dot:nth-child(3) { animation-delay: 0.36s; }
+        h1 {
+            color: #1f2937;
+            font-size: 2em;
+            margin-bottom: 20px;
+        }
 
-    @keyframes bot-dot {
-      0%   { transform: translateY(0); opacity: 0.35; }
-      50%  { transform: translateY(-4px); opacity: 1; }
-      100% { transform: translateY(0); opacity: 0.35; }
-    }
+        h2 {
+            color: #374151;
+            font-size: 1.5em;
+            margin: 20px 0 10px;
+        }
 
-    /* Button styles for project type selection */
-    .project-type-buttons {
-      display: flex;
-      gap: 10px;
-      margin-top: 10px;
-    }
-    .project-type-button {
-      padding: 8px 16px;
-      background-color: #4b5563;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: background-color 0.2s;
-    }
-    .project-type-button:hover {
-      background-color: #6b7280;
-    }
-    .project-type-button:disabled {
-      opacity: 0.65;
-      cursor: not-allowed;
-    }
+        h3 {
+            color: #374151;
+            font-size: 1.2em;
+            margin: 15px 0 5px;
+        }
 
-    /* Styles for formatted JSON output */
-    .tech-stack-response {
-      background-color: #f9fafb;
-      padding: 15px;
-      border-radius: 8px;
-      margin: 10px 0;
-      border: 1px solid #e5e7eb;
-    }
-    .tech-stack-response h3 {
-      color: #1f2937;
-      font-size: 1.2em;
-      margin: 10px 0 5px;
-    }
-    .tech-stack-response h4 {
-      color: #374151;
-      font-size: 1em;
-      margin: 8px 0 4px;
-    }
-    .tech-stack-response ul {
-      list-style-type: disc;
-      margin-left: 20px;
-      color: #4b5563;
-    }
-    .tech-stack-response li {
-      margin: 5px 0;
-    }
-    .tech-stack-response p {
-      color: #4b5563;
-      margin: 5px 0;
-    }
-  </style>
+        p {
+            line-height: 1.6;
+            margin: 10px 0;
+        }
+
+        ul {
+            list-style-type: disc;
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+
+        li {
+            margin: 5px 0;
+        }
+
+        .section {
+            margin-bottom: 30px;
+        }
+
+        .tech-item {
+            margin-bottom: 15px;
+        }
+
+        .tech-item strong {
+            color: #1f2937;
+        }
+
+        /* Disabled styles */
+        .input-container button[disabled],
+        .input-container button.disabled {
+            opacity: 0.65;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        textarea[disabled],
+        textarea.disabled {
+            background: #f3f4f6;
+            opacity: 0.95;
+            cursor: not-allowed;
+        }
+
+        /* Typing indicator */
+        .message.bot-typing {
+            background-color: rgba(233, 236, 239, 0.95);
+            color: #333;
+            align-self: flex-start;
+            padding: 8px 12px;
+            border-radius: 12px;
+            display: inline-flex;
+            gap: 6px;
+            align-items: center;
+        }
+
+        .message.bot-typing .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #6b7280;
+            opacity: 0.35;
+            animation: bot-dot 1s infinite;
+        }
+
+        .message.bot-typing .dot:nth-child(2) {
+            animation-delay: 0.18s;
+        }
+
+        .message.bot-typing .dot:nth-child(3) {
+            animation-delay: 0.36s;
+        }
+
+        @keyframes bot-dot {
+            0% {
+                transform: translateY(0);
+                opacity: 0.35;
+            }
+
+            50% {
+                transform: translateY(-4px);
+                opacity: 1;
+            }
+
+            100% {
+                transform: translateY(0);
+                opacity: 0.35;
+            }
+        }
+
+        /* Button styles for project type selection */
+        .project-type-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .project-type-button {
+            padding: 8px 16px;
+            background-color: #4b5563;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .project-type-button:hover {
+            background-color: #6b7280;
+        }
+
+        .project-type-button:disabled {
+            opacity: 0.65;
+            cursor: not-allowed;
+        }
+
+        /* Styles for formatted JSON output */
+        .tech-stack-response {
+            background-color: #f9fafb;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            border: 1px solid #e5e7eb;
+        }
+
+        .tech-stack-response h3 {
+            color: #1f2937;
+            font-size: 1.2em;
+            margin: 10px 0 5px;
+        }
+
+        .tech-stack-response h4 {
+            color: #374151;
+            font-size: 1em;
+            margin: 8px 0 4px;
+        }
+
+        .tech-stack-response ul {
+            list-style-type: disc;
+            margin-left: 20px;
+            color: #4b5563;
+        }
+
+        .tech-stack-response li {
+            margin: 5px 0;
+        }
+
+        .tech-stack-response p {
+            color: #4b5563;
+            margin: 5px 0;
+        }
+    </style>
 </head>
+
 <body>
-  <!-- Header -->
-  <div class="header">
-    AI-Driven Tech Stack Recommender
-  </div>
-
-  <!-- Layout with side panels and chat -->
-  <div class="layout">
-    <div class="side-panel">
-      <h2>Description</h2>
-      <p>Write your introduction or overview here. This translucent panel is great for context and guidance.</p>
+    <!-- Header -->
+    <div class="header">
+        AI-Driven Tech Stack Recommender
     </div>
 
-    <div class="chat-container">
-      <div id="chat-box"></div>
-      <div class="input-container">
-        <textarea id="user-input" placeholder="Type your message..." rows="1"></textarea>
-        <button id="send-btn" onclick="sendMessage()">Send</button>
-      </div>
+    <!-- Layout with side panels and chat -->
+    <div class="layout">
+        <div class="side-panel">
+
+            
+                <h1>About the Project</h1>
+
+                <div class="section">
+                    <h2>Project Description</h2>
+                    <p>
+                        The <strong>AI-Driven Tech Stack Recommender</strong> is an innovative web application designed
+                        to assist developers, startups, and businesses in selecting the optimal technology stack for
+                        their software projects. By leveraging artificial intelligence, the application provides
+                        personalized tech stack recommendations based on the user's project type and detailed
+                        requirements. The user-friendly chatbot interface guides users through a simple two-step
+                        process: selecting a project type (Web, Mobile, IoT, or a custom type) and providing a detailed
+                        project description. The system then generates a structured set of five tech stack
+                        recommendations, each including frontend, backend, database, deployment options, and more,
+                        complete with explanations and real-world examples. Built with modern web technologies, the
+                        application ensures a seamless and interactive experience, making complex tech decisions
+                        accessible and straightforward.
+                    </p>
+
+                    <h3>Key Features</h3>
+                    <ul>
+                        <li><strong>Interactive Chatbot Interface</strong>: Guides users to specify project type and
+                            description with an intuitive button-based and text input system.</li>
+                        <li><strong>AI-Powered Recommendations</strong>: Utilizes the OpenRouter API to analyze user
+                            inputs and deliver tailored tech stack suggestions.</li>
+                        <li><strong>Structured and Readable Output</strong>: Formats recommendations into clear,
+                            visually appealing sections with headings, lists, and summaries for enhanced readability.
+                        </li>
+                        <li><strong>Scalable and Robust Backend</strong>: Processes user inputs securely and integrates
+                            with external APIs to deliver reliable results.</li>
+                        <li><strong>Responsive Design</strong>: Ensures accessibility across devices with a clean,
+                            modern UI.</li>
+                    </ul>
+                </div>
+
+                <div class="section">
+                    <h2>Technologies Used</h2>
+                    <p>
+                        The AI-Driven Tech Stack Recommender is built using a combination of powerful technologies, each
+                        chosen for its specific role in delivering a robust and user-friendly application. Below is a
+                        list of the technologies and their uses:
+                    </p>
+
+                    <div class="tech-item">
+                        <p><strong>Django (Python Web Framework)</strong></p>
+
+                    </div>
+
+
+                    <div class="tech-item">
+                        <p><strong>OpenRouter API (AI Service)</strong></p>
+                        <ul>
+                            <li><strong>Use</strong>: Provides the AI-driven analysis of user inputs to generate
+                                structured tech stack recommendations. It processes the project type and description to
+                                return a JSON object with five tech stack options.</li>
+                        
+                        </ul>
+                    </div>
+
+                    <div class="tech-item">
+                        <p><strong>Fetch API (JavaScript)</strong></p>
+                        <ul>
+                            <li><strong>Use</strong>: Facilitates asynchronous HTTP requests from the frontend to the
+                                Django backend, sending user inputs (project type and description) and receiving JSON
+                                responses.</li>
+                        </ul>
+                    </div>
+
+                </div>
+            
+        </div>
+
+        <div class="chat-container">
+            <div id="chat-box"></div>
+            <div class="input-container">
+                <textarea id="user-input" placeholder="Type your message..." rows="1"></textarea>
+                <button id="send-btn" onclick="sendMessage()">Send</button>
+            </div>
+        </div>
+
+
     </div>
 
-    <div class="side-panel">
-      <h2>Detailed Explanation</h2>
-      <p>You can add more technical or extended explanations here for clarity. Scroll if text is long.</p>
-    </div>
-  </div>
-
-  <script src="{% static 'js/script.js' %}"></script>
+    <script src="{% static 'js/script.js' %}"></script>
 </body>
+
 </html>

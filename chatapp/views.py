@@ -116,7 +116,7 @@ def chat_response(request):
         "'Deployment and Infrastructure Options' (array of strings), "
         "'summary' (string describing why this stack is suitable), "
         "'examples' (array of strings listing websites or applications using this stack), "
-        "'cohesive compatibility strength' (integer rating from 1 to 10).\n\n"
+        "'Technology cohesive compatibility strength' (integer rating from 1 to 10).\n\n"
         "Ensure the response is a properly formatted JSON object, enclosed in curly braces, with no additional text or comments outside the JSON structure. "
         "Verify that all fields are present and correctly typed in each object.\n"
     )
