@@ -8,57 +8,109 @@
   <title>Chatbot</title>
   <link rel="stylesheet" href="{% static 'css/style.css' %}">
   <style>
-    /* disabled styles */
-.input-container button[disabled],
-.input-container button.disabled {
-  opacity: 0.65;
-  cursor: not-allowed;
-  transform: none;
-}
+    /* Disabled styles */
+    .input-container button[disabled],
+    .input-container button.disabled {
+      opacity: 0.65;
+      cursor: not-allowed;
+      transform: none;
+    }
 
-textarea[disabled],
-textarea.disabled {
-  background: #f3f4f6;
-  opacity: 0.95;
-  cursor: not-allowed;
-}
+    textarea[disabled],
+    textarea.disabled {
+      background: #f3f4f6;
+      opacity: 0.95;
+      cursor: not-allowed;
+    }
 
-/* typing indicator */
-.message.bot-typing {
-  background-color: rgba(233, 236, 239, 0.95);
-  color: #333;
-  align-self: flex-start;
-  padding: 8px 12px;
-  border-radius: 12px;
-  display: inline-flex;
-  gap: 6px;
-  align-items: center;
-}
+    /* Typing indicator */
+    .message.bot-typing {
+      background-color: rgba(233, 236, 239, 0.95);
+      color: #333;
+      align-self: flex-start;
+      padding: 8px 12px;
+      border-radius: 12px;
+      display: inline-flex;
+      gap: 6px;
+      align-items: center;
+    }
 
-/* three animated dots */
-.message.bot-typing .dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #6b7280; /* neutral gray */
-  opacity: 0.35;
-  animation: bot-dot 1s infinite;
-}
-.message.bot-typing .dot:nth-child(2) { animation-delay: 0.18s; }
-.message.bot-typing .dot:nth-child(3) { animation-delay: 0.36s; }
+    .message.bot-typing .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #6b7280;
+      opacity: 0.35;
+      animation: bot-dot 1s infinite;
+    }
+    .message.bot-typing .dot:nth-child(2) { animation-delay: 0.18s; }
+    .message.bot-typing .dot:nth-child(3) { animation-delay: 0.36s; }
 
-@keyframes bot-dot {
-  0%   { transform: translateY(0); opacity: 0.35; }
-  50%  { transform: translateY(-4px); opacity: 1; }
-  100% { transform: translateY(0); opacity: 0.35; }
-}
+    @keyframes bot-dot {
+      0%   { transform: translateY(0); opacity: 0.35; }
+      50%  { transform: translateY(-4px); opacity: 1; }
+      100% { transform: translateY(0); opacity: 0.35; }
+    }
 
+    /* Button styles for project type selection */
+    .project-type-buttons {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .project-type-button {
+      padding: 8px 16px;
+      background-color: #4b5563;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    .project-type-button:hover {
+      background-color: #6b7280;
+    }
+    .project-type-button:disabled {
+      opacity: 0.65;
+      cursor: not-allowed;
+    }
+
+    /* Styles for formatted JSON output */
+    .tech-stack-response {
+      background-color: #f9fafb;
+      padding: 15px;
+      border-radius: 8px;
+      margin: 10px 0;
+      border: 1px solid #e5e7eb;
+    }
+    .tech-stack-response h3 {
+      color: #1f2937;
+      font-size: 1.2em;
+      margin: 10px 0 5px;
+    }
+    .tech-stack-response h4 {
+      color: #374151;
+      font-size: 1em;
+      margin: 8px 0 4px;
+    }
+    .tech-stack-response ul {
+      list-style-type: disc;
+      margin-left: 20px;
+      color: #4b5563;
+    }
+    .tech-stack-response li {
+      margin: 5px 0;
+    }
+    .tech-stack-response p {
+      color: #4b5563;
+      margin: 5px 0;
+    }
   </style>
 </head>
 <body>
   <!-- Header -->
   <div class="header">
-    AI-Driven Tech Stack Reccommeder
+    AI-Driven Tech Stack Recommender
   </div>
 
   <!-- Layout with side panels and chat -->
@@ -72,7 +124,7 @@ textarea.disabled {
       <div id="chat-box"></div>
       <div class="input-container">
         <textarea id="user-input" placeholder="Type your message..." rows="1"></textarea>
-        <button onclick="sendMessage()">Send</button>
+        <button id="send-btn" onclick="sendMessage()">Send</button>
       </div>
     </div>
 
